@@ -3,15 +3,12 @@
 #TODO alternative: makeRoot -> f_withPackages -> tree
 let
   inherit (pkgs) callPackage lib;
-#TODO cant use ${extenderName} in a rec on the right side
-#  extenderName = "extend";
 
-  #Two stage overlay setup. First stage makes _api.root exist, second stage starts returning the full structure.
-  makeExtensibleBootstrap = lib.makeExtensible;
+  initstack = lib.foldl lib.composeExtensions (builtins.head layers) (builtins.tail layers);
 
   makeExtensible = rattrs:
     let #TODO think over this, seems evil
-      result = lib.fix' rattrs // rec {
+      result = lib.fix' (let self = self': initstack self' super; super = rattrs self; in self) // rec {
         extend = overlay: makeExtensible (lib.extends overlay rattrs);
         #TODO: accumulator + withMorePackages
         withPackages = selector: extend (self: super: { #TODO WARN NOTE: laziness means errors here could be delayed till much later, which can be confusing
@@ -22,14 +19,9 @@ let
           });
         };
     in
-      result._api.root // result;
+      (builtins.trace (builtins.removeAttrs result [ "nixpkgs" ]) result)._api.root // result;
 in
 let
   baseLayer = ./layers/0_base.nix;
-#  mkBase = makeExtensible (callPackage baseLayer { inherit api; });
-  mkBase = makeExtensibleBootstrap (callPackage baseLayer { inherit api; });
-  extend = layer: layer.extend;
-
-  bootstrap = lib.foldl extend mkBase layers;
 in
-  makeExtensible (self: bootstrap) #TODO how to turn it inside-out
+  makeExtensible (callPackage baseLayer { inherit api; }) initstack

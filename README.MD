@@ -1,3 +1,5 @@
+WARNING: very broken right now
+
 An overcomplicated (simplification pending) sub-packageset overlay system that does everything (...or something...I've been iterating on and breaking this for too long, someone save me...).
 
 Inspired by: `python.withPackages (p: with p; [ ... ])` (without having looked at the implementation yet...)
@@ -29,6 +31,7 @@ set, while still letting you override it.
 Creating your own package set:
 TL;DR: pass some `layers`, and `api` with a `.root` and a `.withPackages` taking `scope: root: selector:`, to overlay.nix.
 
+TODO: this is wrong now
 Currently, constructing a package set is done in two phases.
 In the first, overlays are used to construct the core of the package set from several layers.
 In the second step, the core is wrapped to provide the utility functions exposed in the api. #TODO test that core stuff can be properly overridden from the second stage
