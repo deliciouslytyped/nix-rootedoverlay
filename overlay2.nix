@@ -18,9 +18,9 @@ let
   applyLayer = base: newStack: self:
     let
       super = base self;
-      self' = newStack self super;
+      next = newStack self super;
     in
-      self';
+      super // next; #TODO is this correct
 
   getBasePackage = obj: obj._api.root;
 
@@ -29,13 +29,11 @@ let
   makeExtensible = {layers, api}:
     let
       rattrs = (applyLayer (base api) (flattenStack layers));
-/* It's erroring before it even touches this
       #TODO more cleaning
       extension = rattrs: rec {
-        
+#        #TODO makeExtensible has wrong signature
+#        extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
         };
-*/
-      extension = a: {};
       #TODO once applyLayer works I could probably just fold the stack in instead of doing a flattenstack step.
       #TODO figure out the appropriate side to associate // on.
       result = lib.fix' rattrs // (extension rattrs);
