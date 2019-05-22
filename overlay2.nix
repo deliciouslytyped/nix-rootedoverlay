@@ -26,13 +26,13 @@ let
 
   base = api: pkgs.callPackage ./layers/0_base.nix { inherit api; };
 
-  makeExtensible = {layers, api}:
+  bootstrap = {layers, api}: (applyLayer (base api) (flattenStack layers)); #TODO pass as first argument to makeextensible
+  makeExtensible = rattrs:
     let
-      rattrs = (applyLayer (base api) (flattenStack layers));
       #TODO more cleaning
       extension = rattrs: rec {
-#        #TODO makeExtensible has wrong signature
-#        extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
+        #TODO makeExtensible has wrong signature
+        extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
         };
       #TODO once applyLayer works I could probably just fold the stack in instead of doing a flattenstack step.
       #TODO figure out the appropriate side to associate // on.
@@ -42,4 +42,4 @@ let
       (getBasePackage result) // result;
     
 in
-  makeExtensible
+  {layers, api}@args: makeExtensible (bootstrap args)
