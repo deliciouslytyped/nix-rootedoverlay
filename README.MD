@@ -1,4 +1,5 @@
-WARNING: very broken right now
+WARNING: ~~very~~ less broken right now
+need more tests
 
 An overcomplicated (simplification pending) sub-packageset overlay system that does everything (...or something...I've been iterating on and breaking this for too long, someone save me...).
 
