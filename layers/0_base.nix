@@ -8,11 +8,4 @@ self: {
   callPackage = lib.callPackageWith ( self.nixpkgs // self );
 
   _api = api self; #needs to be extended # api; # root, withpackages
-
-  tracing = false;
-  trace = str: val: 
-    if self.tracing then
-      lib.traceValFn (v: "${str}\n${lib.generators.toPretty {} v}") val
-    else
-      val;
   }
