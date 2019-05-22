@@ -18,10 +18,11 @@ let
     withPackages = scope: root: selector: root.override { plugins = (selector scope); };
     };
 
-  root = import ./overlay.nix { inherit api; layers = [ packageSet ]; };
+  root = (import ./overlay.nix {}) { inherit api; layers = [ packageSet ]; };
   testOverlay = (self: super: { wat = 1; });
 in
 
+#TODO separate tests and test data
 #Tests
 let
   inherit (lib) isDerivation;
@@ -59,6 +60,8 @@ let
     # overridableCore
 
     #TODO checking internal version consistency
+
+#    root.withPackages (p: ["a"])
 
     };
     ignore = [ "exwPexwPAttr" "wPwPAttr" ]; #TODO failing tests

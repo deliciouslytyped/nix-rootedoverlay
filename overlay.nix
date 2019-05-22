@@ -1,27 +1,51 @@
-# Construct the package set from some ad-hoc / slightly structured layers.
-{layers, api, pkgs ? import ./lib/nixpkgs-pinned.nix}: #TODO no default
-#TODO alternative: makeRoot -> f_withPackages -> tree
+#TODO ?change root nomenclature to basePackage?
+{pkgs ? import ./lib/nixpkgs-pinned.nix}: 
 let
-  inherit (pkgs) callPackage lib;
+  inherit (pkgs) lib;
+in
+let
+  emptyOverlay = self: super: {};
 
-  initstack = lib.foldl lib.composeExtensions (builtins.head layers) (builtins.tail layers);
+  # Turn a list of layers into a single layer
+  #TODO not sure about foldl or foldr so i just use the neutral element https://stackoverflow.com/questions/47495835/sufficient-conditions-for-foldl-and-foldr-equivalence , should otherwise be associative
+  flattenStack = layers: lib.foldl lib.composeExtensions emptyOverlay layers;
 
-  makeExtensible = rattrs:
-    let #TODO think over this, seems evil
-      result = lib.fix' (let self = self': initstack self' super; super = rattrs self; in self) // rec {
-        extend = overlay: makeExtensible (lib.extends overlay rattrs);
-        #TODO: accumulator + withMorePackages
-        withPackages = selector: extend (self: super: { #TODO WARN NOTE: laziness means errors here could be delayed till much later, which can be confusing
-          _api = super._api // {
-            root = super._api.withPackages super super._api.root selector; #TODO check the self on this
-            currentPackages = selector super; #TODO this is wrong as it stands currently, it only shows the last withP but there could be implicit packages in the mutated root
-            };
-          });
-        };
+  #Apply a layer without tying the knot, so that 0_base doesn't explode until the layer that provides the base package is added #TODO think about whether this could happen again across later layers and how to deal with it
+  # base :: self -> Set
+  # newStack :: self -> super -> Set
+  # applyStack :: base -> newStack -> (self -> Set)
+  #TODO you probably want a drawn diagram
+  applyLayer = base: newStack: self:
+    let
+      super = base self;
+      next = newStack self super;
     in
-      (builtins.trace (builtins.removeAttrs result [ "nixpkgs" ]) result)._api.root // result;
+      super // next; #TODO is this correct
+
+  getBasePackage = obj: obj._api.root;
+
+  base = api: pkgs.callPackage ./layers/0_base.nix { inherit api; };
+
+  bootstrap = {layers, api}: (applyLayer (base api) (flattenStack layers)); #TODO pass as first argument to makeextensible
+  makeExtensible = rattrs:
+    let
+      #TODO more cleaning
+      extension = rattrs: rec {
+        #TODO makeExtensible has wrong signature
+        extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
+        withPackages = selector:
+          extend (self: super: {
+            _api = super._api // {
+              root = super._api.withPackages super super._api.root selector;
+              };
+            });
+        };
+      #TODO once applyLayer works I could probably just fold the stack in instead of doing a flattenstack step.
+      #TODO figure out the appropriate side to associate // on.
+      result = lib.fix' rattrs // (extension rattrs);
+    in
+      #make the result set "hang" off the base package. #TODO something something leaky abstractions? -> TODO derive the structure from types
+      (getBasePackage result) // result;
+    
 in
-let
-  baseLayer = ./layers/0_base.nix;
-in
-  makeExtensible (callPackage baseLayer { inherit api; }) initstack
+  {layers, api}@args: makeExtensible (bootstrap args)
