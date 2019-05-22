@@ -33,6 +33,12 @@ let
       extension = rattrs: rec {
         #TODO makeExtensible has wrong signature
         extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
+        withPackages = selector:
+          extend (self: super: {
+            _api = super._api // {
+              root = super._api.withPackages super super._api.root selector;
+              };
+            });
         };
       #TODO once applyLayer works I could probably just fold the stack in instead of doing a flattenstack step.
       #TODO figure out the appropriate side to associate // on.

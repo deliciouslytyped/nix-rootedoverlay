@@ -22,6 +22,7 @@ let
   testOverlay = (self: super: { wat = 1; });
 in
 
+#TODO separate tests and test data
 #Tests
 let
   inherit (lib) isDerivation;
@@ -59,6 +60,8 @@ let
     # overridableCore
 
     #TODO checking internal version consistency
+
+#    root.withPackages (p: ["a"])
 
     };
     ignore = [ "exwPexwPAttr" "wPwPAttr" ]; #TODO failing tests
