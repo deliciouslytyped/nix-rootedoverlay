@@ -2,7 +2,7 @@
 {mkShell, callPackage}:
 let
 
-  rooted = callPackage ./lib/rooted.nix {};
+  rooted = callPackage ./extern/rooted.nix {};
   
   utils = self: super: {
     lib = {
@@ -49,10 +49,3 @@ in rec {
       '';
     };
   }
-
-# a minimal example showcasing extended functionality, overlays from files conventions, config with modules
-#    layers = map import [
-#      ./layers/1_util.nix # functions and stuff
-#      ./layers/2_base_packages.nix # The "base" packages, here its textRoot
-#      ./layers/3_packages.nix # Plugin packages
-#      ];

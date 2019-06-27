@@ -1,4 +1,4 @@
-{testlib ? let pkgs = import <nixpkgs> {}; in pkgs.callPackage ../../extern/nix-expr-testlib/testlib.nix {}}:
+{testlib ? let pkgs = import <nixpkgs> {}; in pkgs.callPackage ../../../extern/nix-expr-testlib/testlib.nix {}}:
 let
   pkgs = import <nixpkgs> {};
   inherit (pkgs) lib;
