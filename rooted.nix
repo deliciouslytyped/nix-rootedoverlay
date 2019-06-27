@@ -1,6 +1,6 @@
 #TODO checkcollider? / "checkcollider isnt that great because you should key by a key to begin with"
 #TODO ?change root nomenclature to basePackage?
-{pkgs ? import ./lib/nixpkgs-pinned.nix}: 
+{pkgs ? import ./extern/nixpkgs-pinned.nix}: 
 let
   inherit (pkgs) lib;
 in
@@ -23,11 +23,11 @@ let
     in
       super // next; #TODO is this correct
 
-  getBasePackage = obj: obj._api.root;
+  getBasePackage = obj: obj._interface.root;
 
-  base = api: pkgs.callPackage ./layers/0_base.nix { inherit api; };
+  base = interface: pkgs.callPackage ./0_base.nix { inherit interface; };
 
-  bootstrap = {layers, api}: (applyLayer (base api) (flattenStack layers)); #TODO pass as first argument to makeextensible
+  bootstrap = {layers, interface}: (applyLayer (base interface) (flattenStack layers)); #TODO pass as first argument to makeextensible
   makeExtensible = rattrs:
     let
       #TODO more cleaning
@@ -35,9 +35,9 @@ let
         #TODO makeExtensible has wrong signature
         extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
         withPackages = selector:
-          extend (self: super: { #TODO why is this in _api, why isnt is just part of the overlay?? #TODO what about optional implementation of methods
-            _api = super._api // {
-              root = super._api.withPackages super super._api.root selector;
+          extend (self: super: { #TODO why is this in _interface, why isnt is just part of the overlay?? #TODO what about optional implementation of methods
+            _interface = super._interface // {
+              root = super._interface.withPackages super super._interface.root selector;
               };
             });
         };
@@ -48,5 +48,30 @@ let
       #make the result set "hang" off the base package. #TODO something something leaky abstractions? -> TODO derive the structure from types
       (getBasePackage result) // result;
     
-in
-  {layers, api}@args: makeExtensible (bootstrap args)
+in rec {
+  mkRoot = {layers, interface}@args: makeExtensible (bootstrap args);
+  lib = {
+    #some default implementations
+    withp = {
+      cumulative = scope: root: selector: root.override (old: { plugins = (old.plugins or []) ++ (selector scope); });
+      overwrite = scope: root: selector: root.override { plugins = selector scope; }; #TODO check if this overrides /clears the other arguments
+      };
+    overlays = {
+    ##TODO sorted mapdirs? - or mapdirs iterates in lexical order? - make a high level and a low level mapdir
+    #layers = map import [
+    #  ./overlay-system/1_util.nix # functions and stuff
+    #  ./overlay-system/2_base_packages.nix # The "base" packages, here its textRoot
+    #  ./overlay-system/3_packages.nix # Plugin packages
+    #  ];
+    ##layers = mapDir (relpath: type: when (t: t == "file") (import relpath)) ./
+      #TODO unfuck this, todo sort
+      autoimport = path: builtins.attrValues (pkgs.lib.mapDirFiles import path);
+      };
+    interface = {
+      default = rootf: self: { #TODO document that this takes the final fixpoint
+        root = rootf self;
+        withPackages = lib.withp.cumulative;
+        };
+      };
+    };
+  }

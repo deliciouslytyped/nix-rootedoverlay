@@ -12,12 +12,12 @@
       END
       '';
 
-  api = self: {
+  interface = self: {
     root = lib.makeOverridable mockRoot {};
     withPackages = scope: root: selector: root.override (a: { plugins = (a.plugins or []) ++ (selector scope); });
     #TODO override per discussion with joepie
     };
 
-  root = (import ../../overlay.nix {}) { inherit api; layers = [ packageSet ]; };
+  root = (import ../../overlay.nix {}).mkRoot { inherit interface; layers = [ packageSet ]; };
   testOverlay = (self: super: { wat = 1; });
 }

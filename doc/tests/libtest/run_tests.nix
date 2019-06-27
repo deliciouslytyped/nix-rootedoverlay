@@ -18,8 +18,8 @@ let
     usableNixpkgs = builtins.hasAttr "callPackage" root.nixpkgs;
     hangingLeaves = builtins.hasAttr "testPackageA" root;
 
-    apiSet = (root._api.withPackages != null) && (root._api.root != null);
-    #TODO test bootstrap phases separately (check _api NOT set?)
+    interfaceSet = (root._interface.withPackages != null) && (root._interface.root != null);
+    #TODO test bootstrap phases separately (check _interface NOT set?)
 
     #This test is kind of pointless because drvSetEq can't test equality of functions.
     extendableExtendAttr = drvSetEq ((root.extend emptyOverlay).extend emptyOverlay) root;

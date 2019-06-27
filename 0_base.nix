@@ -1,4 +1,4 @@
-{pkgs, lib, api}:
+{pkgs, lib, interface}:
 self: {
   # Don't pollute the namespace (for e.g. tab completion)
   nixpkgs = pkgs;
@@ -7,5 +7,5 @@ self: {
   # Packages from our set take precedence on collision. #TODO maybe I can solve this somehow. What would an unwanted collision look like?
   callPackage = lib.callPackageWith ( self.nixpkgs // self );
 
-  _api = api self; #needs to be extended # api; # root, withpackages
+  _interface = interface self; #needs to be extended # api; # root, withpackages
   }

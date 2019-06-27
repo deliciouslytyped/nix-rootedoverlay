@@ -1,2 +1,0 @@
-using the layers approach for the test framework probably doesnt make sense because its already reliant on .extend working (?)
-^no, shouldnt be a problem  - this is what the bootstrap is for?
