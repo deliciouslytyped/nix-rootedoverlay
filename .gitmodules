@@ -1,0 +1,3 @@
+[submodule "extern/nix-expr-testlib"]
+	path = extern/nix-expr-testlib
+	url = https://github.com/deliciouslytyped/nix-expr-testlib
