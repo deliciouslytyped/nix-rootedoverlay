@@ -33,7 +33,7 @@ let
       in
         drvSetEq d root;
 
-    #withPackages works
+    # withPackages works
     wPFunctionality =
       let
         a = root.withPackages (p: [ p.testPackageA ]);
@@ -45,7 +45,7 @@ let
 
     # extend works
 
-    # wPwPFunctionality
+    # wPwPFunctionality #Test needs at least two plugins
     # exExFunctionality
     # exwPExwPFunctionality
 
