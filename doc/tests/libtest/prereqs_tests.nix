@@ -18,6 +18,6 @@
     #TODO override per discussion with joepie
     };
 
-  root = (import ../../overlay.nix {}).mkRoot { inherit interface; layers = [ packageSet ]; };
+  root = (import ../../../rooted.nix {}).mkRoot { inherit interface; layers = [ packageSet ]; };
   testOverlay = (self: super: { wat = 1; });
 }
