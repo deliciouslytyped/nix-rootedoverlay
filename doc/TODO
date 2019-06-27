@@ -1,8 +1,6 @@
 using the layers approach for the test framework probably doesnt make sense because its already reliant on .extend working (?)
 ^no, shouldnt be a problem  - this is what the bootstrap is for?
 
-implement a mock test infrastructure where the root is a text file that contains root, and plugins are additional lines that are appended
-
 rename from rooted to something more appropriately descriptive?
 
 consider the enabledebugging infrastructure

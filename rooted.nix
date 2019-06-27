@@ -16,7 +16,7 @@ let
   # newStack :: self -> super -> Set
   # applyStack :: base -> newStack -> (self -> Set)
   #TODO you probably want a drawn diagram
-  applyLayer = base: newStack: self:
+  applyLayer = base: newStack: self: #TODO why do i need both applylayer and flattenstack
     let
       super = base self;
       next = newStack self super;
@@ -28,6 +28,7 @@ let
   base = interface: pkgs.callPackage ./0_base.nix { inherit interface; };
 
   bootstrap = {layers, interface}: (applyLayer (base interface) (flattenStack layers)); #TODO pass as first argument to makeextensible
+
   makeExtensible = rattrs:
     let
       #TODO more cleaning
@@ -50,23 +51,21 @@ let
     
 in rec {
   mkRoot = {layers, interface}@args: makeExtensible (bootstrap args);
+
   lib = {
     #some default implementations
+
     withp = {
       cumulative = scope: root: selector: root.override (old: { plugins = (old.plugins or []) ++ (selector scope); });
       overwrite = scope: root: selector: root.override { plugins = selector scope; }; #TODO check if this overrides /clears the other arguments
       };
+
     overlays = {
     ##TODO sorted mapdirs? - or mapdirs iterates in lexical order? - make a high level and a low level mapdir
-    #layers = map import [
-    #  ./overlay-system/1_util.nix # functions and stuff
-    #  ./overlay-system/2_base_packages.nix # The "base" packages, here its textRoot
-    #  ./overlay-system/3_packages.nix # Plugin packages
-    #  ];
-    ##layers = mapDir (relpath: type: when (t: t == "file") (import relpath)) ./
       #TODO unfuck this, todo sort
       autoimport = path: builtins.attrValues (pkgs.lib.mapDirFiles import path);
       };
+
     interface = {
       default = rootf: self: { #TODO document that this takes the final fixpoint
         root = rootf self;
