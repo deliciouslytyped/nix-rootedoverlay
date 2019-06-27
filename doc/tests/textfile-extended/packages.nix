@@ -12,7 +12,7 @@ in rec {
   # nix-shell -A example
   example = mkShell {
     shellHook = ''
-      exec ${myroot.withPackages (p: with p; [ p."hello.nix" p."goodbye.nix" ])}
+      exec ${myroot.withPackages (p: with p; [ hello goodbye ])}
       '';
     };
   }
