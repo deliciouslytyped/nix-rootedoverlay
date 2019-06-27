@@ -1,27 +1,11 @@
-{testlib ? let pkgs = import <nixpkgs> {}; in pkgs.callPackage ./extern/nix-expr-testlib/testlib.nix {}}:
+{testlib ? let pkgs = import <nixpkgs> {}; in pkgs.callPackage ../../extern/nix-expr-testlib/testlib.nix {}}:
 let
   pkgs = import <nixpkgs> {};
   inherit (pkgs) lib;
   inherit (testlib) drvSetEq;
 in
-
-#Setup
-let
-  packageSet = (self: super: {
-    testPackageA = "a winner is you";
-    });
-
-  emptyOverlay = (self: super: {});
-
-  api = self: {
-    root = lib.makeOverridable ({ plugins ? [] }@args: pkgs.hello // args ) {};
-    withPackages = scope: root: selector: root.override { plugins = (selector scope); };
-    };
-
-  root = import ./overlay.nix { inherit api; layers = [ packageSet ]; };
-  testOverlay = (self: super: { wat = 1; });
-in
-
+with (pkgs.callPackage ./prereqs_tests.nix {});
+#TODO separate tests and test data
 #Tests
 let
   inherit (lib) isDerivation;
@@ -49,10 +33,19 @@ let
       in
         drvSetEq d root;
 
-    # withPackages works
+    #withPackages works
+    wPFunctionality =
+      let
+        a = root.withPackages (p: [ p.testPackageA ]);
+        #TODO withMorePackages
+        b = a.withPackages (p: [ p.testPackageB ]);
+      in
+        #Well, this works as long as theyre strings
+        (builtins.readFile b) == (lib.concatStringsSep "\n" (with (packageSet {} {}); [ testPackageA testPackageB ])) + "\n";
+
     # extend works
 
-    # wPwPFunctionality #Test needs at least two plugins
+    # wPwPFunctionality
     # exExFunctionality
     # exwPExwPFunctionality
 
@@ -60,9 +53,12 @@ let
 
     #TODO checking internal version consistency
 
+#    root.withPackages (p: ["a"])
+
     };
     ignore = [ "exwPexwPAttr" "wPwPAttr" ]; #TODO failing tests
 in {
   inherit tests root;
+  #TODO accessing actuall test returned objects is a pain in the butt
   result = builtins.trace (testlib.runAll (tests root) ignore) null;
   }

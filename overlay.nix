@@ -1,3 +1,4 @@
+#TODO checkcollider? / "checkcollider isnt that great because you should key by a key to begin with"
 #TODO ?change root nomenclature to basePackage?
 {pkgs ? import ./lib/nixpkgs-pinned.nix}: 
 let
@@ -34,7 +35,7 @@ let
         #TODO makeExtensible has wrong signature
         extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
         withPackages = selector:
-          extend (self: super: {
+          extend (self: super: { #TODO why is this in _api, why isnt is just part of the overlay?? #TODO what about optional implementation of methods
             _api = super._api // {
               root = super._api.withPackages super super._api.root selector;
               };

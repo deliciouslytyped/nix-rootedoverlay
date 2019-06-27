@@ -1,5 +1,8 @@
 WARNING: ~~very~~ less broken right now
 need more tests
+TODO: just ran into a case with gotools where a name collision led to a "hard" to understand problem. my conclusion is withPlugins should not by default accept arbitrary thing (without some explicit wrapper or something)
+TODO: when to use this over normal overlays with lib.makeExtensible
+TODO: document / make true: .withPackages defaults to being cumulative, can be cleared/overridden with ...? TODO: make this visible somehow ($name? that would end up being  pretty verbose though),
 
 An overcomplicated (simplification pending) sub-packageset overlay system that does everything (...or something...I've been iterating on and breaking this for too long, someone save me...).
 
@@ -80,3 +83,30 @@ layers/
 lib/
   nixpkgs-pinned.nix
   extern/
+
+#########################again
+fix:
+  A function (p: [ ... ]) :: List -> List is called a selector. Note that nothing prevents a Nix selector from including items not part of the original p.
+  Set -> List
+
+
+`type Selector :: AttrSet -> [ Drv ]`
+?? wtf, lazy data types are actually implicit functions?? `type Overlay :: self : AttrSet -> super : AttrSet -> AttrSet`
+`root`
+- `.extend :: Overlay -> AttrSetDrv`
+- `.WithPackages :: Selector -> AttrSetDrv`
+- `.nixpkgs :: AttrSet`
+- `._api :: AttrSet`
+  - `.withPackages :: scope : AttrSet -> root : Root -> selector : Selector -> AttrSetDrv`
+  - `.root :: Drv`
+
+root !could have any type because ._api.withPackages should be the only thing that actually tries to access it (?), but normally it would be an overridable derivation taking plugins as an argument
+but actually its a Drv because you want the root to be able to evaluate
+...can rot have an arbitrary type? can you treat a string as a set?
+
+
+TODO 
+rename api
+consider using module system for merging (evalmodules)
+  <tv> pie_: https://cgit.krebsco.de/stockholm/tree/krebs/5pkgs/simple/flameshot-once/default.nix
+  <tv> pie_: https://cgit.krebsco.de/stockholm/tree/krebs/5pkgs/simple/flameshot-once/profile.nix
