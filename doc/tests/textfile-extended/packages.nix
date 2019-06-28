@@ -5,7 +5,7 @@ let rooted = callPackage ./extern/rooted.nix {};
 in rec {
   myroot = rooted.mkRoot {
     interface = interface.default (self: self.textRoot);
-    layers = overlays.autoimport ./layers;
+    layers = overlays.autoimport2 ./layers;
     };
 
   # nix-shell -A example
