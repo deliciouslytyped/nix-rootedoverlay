@@ -9,9 +9,8 @@
 #TODO does being on the inside or outside of the fixpoint change anything? / can extender be moved into a layer? / 0_base
 {pkgs ? import ./extern/nixpkgs-pinned.nix}: 
 let
-  inherit (pkgs) lib;
-  inherit (lib) foldl composeExtensions fix' extends;
-  inherit (lib) mapDirFiles;
+  inherit (pkgs.lib) foldl composeExtensions fix' extends
+                     mapDirFiles;
 
   # Turn a list of overlays into to a single overlay
   flattenStack = layers: foldl composeExtensions (self: super: {}) layers;

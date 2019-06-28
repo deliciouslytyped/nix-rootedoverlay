@@ -9,3 +9,4 @@ conventions:
   minimize the use of nonoverridable let expressions
 
 document error: attribute 'override' missing, at /bakery2/oven1/personal/projects/nixapps/nix-rootedoverlay/overlay.nix:56:43 as a possible result of not usind stdenv for a base package
+  or at least do something about opaque foot shooting?

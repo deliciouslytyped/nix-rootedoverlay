@@ -1,10 +1,11 @@
 # An example showcasing some additional functionality
 {mkShell, callPackage}:
-let rooted = callPackage ./extern/rooted.nix {};  
+let rooted = callPackage ./extern/rooted.nix {};
+    inherit (rooted.lib) interface overlays;
 in rec {
   myroot = rooted.mkRoot {
-    interface = rooted.lib.interface.default (self: self.textRoot);
-    layers = rooted.lib.overlays.autoimport ./layers;
+    interface = interface.default (self: self.textRoot);
+    layers = overlays.autoimport ./layers;
     };
 
   # nix-shell -A example
