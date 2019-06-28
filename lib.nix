@@ -5,6 +5,7 @@
     };
 
   overlays = {
+    #Note attrsets are lexically sorted by default
     autoimport = path: builtins.attrValues (pkgs.lib.mapDirFiles import path);
     };
 

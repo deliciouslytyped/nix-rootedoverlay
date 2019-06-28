@@ -1,4 +1,4 @@
-# A self contained example, constructing the package set from some slightly structured overlays.
+# A self contained example
 {mkShell, callPackage}:
 let rooted = callPackage ./extern/rooted.nix {}; in
 let  

@@ -1,5 +1,4 @@
-# An example, constructing the package set from some slightly structured overlays.
-# a minimal example showcasing extended functionality, overlays from files conventions, config with modules
+# An example showcasing some additional functionality
 {mkShell, callPackage}:
 let rooted = callPackage ./extern/rooted.nix {};  
 in rec {
