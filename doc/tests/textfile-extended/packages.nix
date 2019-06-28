@@ -9,6 +9,13 @@ in rec {
     };
 
   # nix-shell -A example
+  # Expected output:
+  # ```
+  #   I am the root
+  #   hello
+  #   goodbye
+  #   hello again.
+  # ```
   example = mkShell {
     shellHook = ''
       exec ${
