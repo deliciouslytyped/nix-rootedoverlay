@@ -1,0 +1,16 @@
+  # TODO: is this just  lib.extends?
+  # TODO: probably draw a diagram
+  # This applies an overlay to a `fix`-able (self -> Set) function, without "tying the knot".
+  # This is necessary because 0_base will explode if you tie the knot before you have added the overlay that provides the "root". (usually 3_packages)
+  #
+  # This is different from composeExtensions because that composes two overlays.
+  # Note how the signatures are different.
+  # compose :: base:(self:Set -> Set) -> overlay:(self:Set -> super:Set -> Set) -> (self:Set -> Set)
+  # composeExtensions :: overlay:(self:Set -> super:Set -> Set) -> overlay:(self:Set -> super:Set -> Set) -> overlay:(self:Set -> super:Set -> Set)
+  applyLayer = base: newStack: self:
+    let
+      super = base self;
+      next = newStack self super;
+    in
+      super // next;
+

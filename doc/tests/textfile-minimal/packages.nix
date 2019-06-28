@@ -1,9 +1,8 @@
 # A self contained example, constructing the package set from some slightly structured overlays.
 {mkShell, callPackage}:
-let
+let rooted = callPackage ./extern/rooted.nix {}; in
+let  
 
-  rooted = callPackage ./extern/rooted.nix {};
-  
   utils = self: super: {
     lib = {
       gen = super.nixpkgs.lib.concatStringsSep "\n";
@@ -33,7 +32,7 @@ in rec {
 
   myroot = rooted.mkRoot {
   
-    interface = self: { #TODO document that this takes the final fixpoint
+    interface = self: {
       root = self.textRoot;
       withPackages = rooted.lib.withp.cumulative;
       };

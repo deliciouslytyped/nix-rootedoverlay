@@ -1,76 +1,54 @@
+#TODO consider how to do overrides of the very top level definition, such as injecting additional overlays? - shouldnt be necessary though because thats exactly what .extend and such do, unless for some reason youd need to inject something in the middle of the bootstrap??? - which is to say, does .extend let you rewrite the bootstrap?
+#TODO: look into makeScope, It might remove some stuff from 0_base
+#TODO something something leaky abstractions? -> TODO derive the structure from types
 #TODO checkcollider? / "checkcollider isnt that great because you should key by a key to begin with"
-#TODO ?change root nomenclature to basePackage?
+#TODO consider moving interfacec to a layer instead of injecting it into base
+#TODO !!!??? why does fixp // extender make it look like the extension and the bootstrap are totally unrelated?? if they are, that aint right!?
+#TODO i really probably shouldnt need more than one fixpoin / recursion
 {pkgs ? import ./extern/nixpkgs-pinned.nix}: 
 let
   inherit (pkgs) lib;
-in
-let
-  emptyOverlay = self: super: {};
+  inherit (lib) foldl composeExtensions fix' extends;
+  inherit (lib) mapDirFiles;
 
-  # Turn a list of layers into a single layer
-  #TODO not sure about foldl or foldr so i just use the neutral element https://stackoverflow.com/questions/47495835/sufficient-conditions-for-foldl-and-foldr-equivalence , should otherwise be associative
-  flattenStack = layers: lib.foldl lib.composeExtensions emptyOverlay layers;
+  # Turn a list of overlays into to a single overlay
+  flattenStack = layers: foldl composeExtensions (self: super: {}) layers;
 
-  #Apply a layer without tying the knot, so that 0_base doesn't explode until the layer that provides the base package is added #TODO think about whether this could happen again across later layers and how to deal with it
-  # base :: self -> Set
-  # newStack :: self -> super -> Set
-  # applyStack :: base -> newStack -> (self -> Set)
-  #TODO you probably want a drawn diagram
-  applyLayer = base: newStack: self: #TODO why do i need both applylayer and flattenstack
+  updateRoot = selector:
+    (self: super: { #TODO why is this in _interface, why isnt is just part of the overlay?? #TODO what about optional implementation of methods
+      _interface = super._interface // {
+        root = super._interface.withPackages super super._interface.root selector;
+        };
+      });
+
+  extender = recset: rec {
+    extend = overlay: makeExtensible (extends overlay recset); #Merge the overlay into the recursive set, return the next fix point after a recursive call
+    withPackages = selector: extend (updateRoot selector);
+    };
+
+  #TODO more cleaning
+  #wait...somethings fucky, re the two orthogonal things, also that means im redundantly calling a fixpoint every time i call makeexntensible? # well actually its lazy so...
+  # extend injects an overlay at each step and fix caps it off at after each step after a recursive call
+  makeExtensible = recset:
     let
-      super = base self;
-      next = newStack self super;
+      fixp = fix' recset;
     in
-      super // next; #TODO is this correct
-
-  getBasePackage = obj: obj._interface.root;
+      fixp._interface.root // ( # This makes the returned object usable as a derivation #TODO warn if extender has any attributes that will mess up derivations (?)
+        # merge the new attributes onto the fix point #TODO can this be a layer instead? might simplify things a tiny bit. does being on the inside or outside of the fixpoint change anything?
+        fixp // (extender recset)
+        );
 
   base = interface: pkgs.callPackage ./0_base.nix { inherit interface; };
-
-  bootstrap = {layers, interface}: (applyLayer (base interface) (flattenStack layers)); #TODO pass as first argument to makeextensible
-
-  makeExtensible = rattrs:
+  bootstrap = {layers, interface}:
     let
-      #TODO more cleaning
-      extension = rattrs: rec {
-        #TODO makeExtensible has wrong signature
-        extend = overlay: makeExtensible (lib.extends overlay rattrs); #TODO is lib.extends the correct semantics for this? should be fine since we shouldnt have the bootstrap problem anymore...
-        withPackages = selector:
-          extend (self: super: { #TODO why is this in _interface, why isnt is just part of the overlay?? #TODO what about optional implementation of methods
-            _interface = super._interface // {
-              root = super._interface.withPackages super super._interface.root selector;
-              };
-            });
-        };
-      #TODO once applyLayer works I could probably just fold the stack in instead of doing a flattenstack step.
-      #TODO figure out the appropriate side to associate // on.
-      result = lib.fix' rattrs // (extension rattrs);
+      stack = extends (flattenStack layers) (base interface);
     in
-      #make the result set "hang" off the base package. #TODO something something leaky abstractions? -> TODO derive the structure from types
-      (getBasePackage result) // result;
-    
+      makeExtensible stack;
+
 in rec {
-  mkRoot = {layers, interface}@args: makeExtensible (bootstrap args);
 
-  lib = {
-    #some default implementations
+  mkRoot = bootstrap;
 
-    withp = {
-      cumulative = scope: root: selector: root.override (old: { plugins = (old.plugins or []) ++ (selector scope); });
-      overwrite = scope: root: selector: root.override { plugins = selector scope; }; #TODO check if this overrides /clears the other arguments
-      };
-
-    overlays = {
-    ##TODO sorted mapdirs? - or mapdirs iterates in lexical order? - make a high level and a low level mapdir
-      #TODO unfuck this, todo sort
-      autoimport = path: builtins.attrValues (pkgs.lib.mapDirFiles import path);
-      };
-
-    interface = {
-      default = rootf: self: { #TODO document that this takes the final fixpoint
-        root = rootf self;
-        withPackages = lib.withp.cumulative;
-        };
-      };
-    };
+  #some default implementations
+  lib = pkgs.callPackage ./lib.nix {};
   }
