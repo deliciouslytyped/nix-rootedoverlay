@@ -1,0 +1,14 @@
+(self: super: {                                                                                                                                                                                                                                                           
+  lib = super.lib // rec {                                                                                                                                                                                                                                                
+    mapDir = filter: f: path:                                                                                                                                                                                                                                             
+      let                                                                                                                                                                                                                                                                 
+        files = super.lib.filterAttrs filter (builtins.readDir path);                                                                                                                                                                                                     
+      in                                                                                                                                                                                                                                                                  
+        builtins.mapAttrs (n: v: f (path + ("/" + n)) v) files;                                                                                                                                                                                                           
+
+    mapDirFiles = f: path:                                                                                                                                                                                                                                                
+      mapDir (n: v: v == "regular") (n: v: f n) path; #TODO pretty sure theres a map filter like tihs somewhere in lib                                                                                                                                                    
+
+    mapDirFilesRec = null; #TODO composable mapdirs and mapdirfiles?                                                                                                                                                                                                      
+    };                                                                                                                                                                                                                                                                    
+  }) 
