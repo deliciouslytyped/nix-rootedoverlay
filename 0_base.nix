@@ -1,3 +1,4 @@
+#TODO using makeScope might make most of this redundant?
 {pkgs, lib, interface}:
 self: {
   # Don't pollute the namespace (for e.g. tab completion)
