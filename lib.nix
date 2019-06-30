@@ -20,7 +20,7 @@
         any = (_: _: true);
 
         autoimport = n:
-          if (name n == "autopackages")
+          if (pkgs.lib.hasPrefix "autopackages" (name n))
             then (packageImporter n)
             else (import n);
 
@@ -28,7 +28,7 @@
           let
             inherit (pkgs.lib) nameValuePair removeSuffix mapAttrs' mapDirFiles;
             dropSuffix = n: v: nameValuePair (removeSuffix ".nix" n) v;
-            importPackage = path: super.callPackage path {};
+            importPackage = path: super.callPackage path { inherit super; }; # allows an autoimport to be a patch, should this accept self as well or does the recursion stuff start ending up too tangled? a strict structure is easier to understand.
           in
             mapAttrs' dropSuffix (mapDirFiles importPackage path)
           );

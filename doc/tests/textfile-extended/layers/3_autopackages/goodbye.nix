@@ -1,1 +1,1 @@
-{}: "goodbye"
+{super}: "goodbye"

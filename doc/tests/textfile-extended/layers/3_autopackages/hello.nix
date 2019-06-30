@@ -1,1 +1,1 @@
-{}: "hello"
+{super}: "hello"
